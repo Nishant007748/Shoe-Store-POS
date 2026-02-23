@@ -24,6 +24,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 const seedData = async () => {
   try {
     // Clear existing data (optional, but good for starting fresh)
+    await User.deleteMany({});
     await Brand.deleteMany({});
     await ShoeType.deleteMany({});
     await Shoe.deleteMany({});
