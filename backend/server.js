@@ -56,6 +56,8 @@ app.use((err, req, res, next) => {
   });
 });
 
+app.use("/api/customers", require("./routes/customerRoutes"));
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({

@@ -45,6 +45,8 @@ export const authAPI = {
   getMe: () => api.get('/auth/me'),
 };
 
+
+
 // Brand APIs
 export const brandAPI = {
   getAll: () => api.get('/brands'),
