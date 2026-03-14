@@ -105,6 +105,13 @@ router.get('/sales', protect, authorize('owner'), async (req, res) => {
       }
     ]);
 
+    // Recent Sales
+    const recentSales = await Sale.find({ status: 'completed' }) // Assuming "latest 10 sales" means overall, not restricted by start/end date
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .populate('customer', 'name phone')
+      .populate('soldBy', 'name');
+
     res.json({
       success: true,
       data: {
@@ -112,7 +119,8 @@ router.get('/sales', protect, authorize('owner'), async (req, res) => {
         summary: summary[0] || {},
         salesByPeriod: salesReport,
         paymentBreakdown,
-        topItems
+        topItems,
+        recentSales
       }
     });
   } catch (error) {

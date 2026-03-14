@@ -12,7 +12,7 @@ router.get('/', protect, async (req, res) => {
   try {
     const { search, page = 1, limit = 50 } = req.query;
     
-    const query = { isActive: true };
+    const query = { isActive: { $ne: false } };
     
     if (search) {
       query.$or = [
@@ -92,7 +92,7 @@ router.get('/:id', protect, async (req, res) => {
 router.post('/', [
   protect,
   body('name').trim().notEmpty().withMessage('Customer name is required'),
-  body('phone').trim().notEmpty().withMessage('Phone number is required')
+  body('phone').optional({ checkFalsy: true }).trim()
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -106,12 +106,14 @@ router.post('/', [
     const { name, email, phone, address, notes } = req.body;
 
     // Check if customer exists with same phone
-    const existingCustomer = await Customer.findOne({ phone });
-    if (existingCustomer) {
-      return res.status(400).json({
-        success: false,
-        message: 'Customer with this phone number already exists'
-      });
+    if (phone && phone.trim() !== '') {
+      const existingCustomer = await Customer.findOne({ phone });
+      if (existingCustomer) {
+        return res.status(400).json({
+          success: false,
+          message: 'Customer with this phone number already exists'
+        });
+      }
     }
 
     const customer = await Customer.create({

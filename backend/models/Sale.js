@@ -100,7 +100,7 @@ const saleSchema = new mongoose.Schema({
 });
 
 // Generate invoice number before saving
-saleSchema.pre('save', async function(next) {
+saleSchema.pre('validate', async function(next) {
   if (!this.invoiceNumber) {
     const date = new Date();
     const year = date.getFullYear();

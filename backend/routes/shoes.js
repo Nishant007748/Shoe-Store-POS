@@ -143,20 +143,29 @@ router.post('/', [
   try {
     const {
       name, brand, shoeType, sku, size, color, material,
-      quantity, mrp, sellingPrice, description, lowStockThreshold
+      quantity, mrp, sellingPrice, description, lowStockThreshold, imageUrls
     } = req.body;
 
     // Check if SKU already exists
+    if (!sku) {
+      return res.status(400).json({
+        success: false,
+        message: 'SKU is required'
+      });
+    }
     const existingSku = await Shoe.findOne({ sku });
     if (existingSku) {
       return res.status(400).json({
         success: false,
-        message: 'SKU already exists'
+        message: 'SKU already exists. Please use a unique SKU.'
       });
     }
 
     // Get uploaded file paths
-    const images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+    let images = req.files ? req.files.map(file => `/uploads/${file.filename}`) : [];
+    if (imageUrls) {
+      images.push(imageUrls);
+    }
 
     const shoe = await Shoe.create({
       name,
@@ -215,6 +224,9 @@ router.put('/:id', [
     if (req.files && req.files.length > 0) {
       const newImages = req.files.map(file => `/uploads/${file.filename}`);
       req.body.images = [...(shoe.images || []), ...newImages];
+    }
+    if (req.body.imageUrls) {
+      req.body.images = [...(shoe.images || []), ...(req.body.images || []), req.body.imageUrls];
     }
 
     shoe = await Shoe.findByIdAndUpdate(

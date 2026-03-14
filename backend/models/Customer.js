@@ -37,6 +37,16 @@ const customerSchema = new mongoose.Schema(
     notes: {
       type: String,
     },
+
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+
+    totalPurchases: { type: Number, default: 0 },
+    totalSpent: { type: Number, default: 0 },
+    loyaltyPoints: { type: Number, default: 0 },
+    lastPurchaseDate: { type: Date },
   },
   { timestamps: true }
 );

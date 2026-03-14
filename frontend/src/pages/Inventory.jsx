@@ -41,11 +41,14 @@ const ShoeFormModal = ({ isOpen, onClose, onSubmit, brands, shoeTypes, editingSh
     // So we need to put it in FormData.
     const fd = new FormData();
     Object.keys(formattedData).forEach(key => {
+      // Don't send undefined/null
+      if (formattedData[key] === undefined || formattedData[key] === null) return;
+
       if (key === 'images') {
-        // If it's a string URL from dummy data requirement, we might need a custom approach or backend might handle string in array.
-        // The backend model takes [String].
-        // Express backend multer might just ignore it if it's text, or we can send it as a text field.
-        fd.append('images', formattedData.images[0]);
+        const imgVal = formattedData.images[0];
+        if (imgVal && typeof imgVal === 'string' && imgVal.trim() !== '') {
+          fd.append('imageUrls', imgVal);
+        }
       } else {
         fd.append(key, formattedData[key]);
       }
@@ -206,7 +209,12 @@ const Inventory = () => {
       fetchData();
     } catch (error) {
       console.error('Error saving shoe:', error);
-      alert('Error saving. Check console.');
+      const resData = error.response?.data;
+      if (resData?.errors && Array.isArray(resData.errors)) {
+        alert('Validation Error: \n' + resData.errors.map(e => '- ' + e.msg).join('\n'));
+      } else {
+        alert(resData?.message || 'Error saving. Please check the form data.');
+      }
     }
   };
 

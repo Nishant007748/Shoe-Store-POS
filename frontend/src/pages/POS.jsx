@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { shoeAPI, saleAPI } from '../utils/api';
-import { FaShoppingCart, FaTrash, FaPlus, FaMinus, FaSearch, FaBox } from 'react-icons/fa';
+import { shoeAPI, saleAPI, customerAPI } from '../utils/api';
+import { FaShoppingCart, FaTrash, FaPlus, FaMinus, FaSearch, FaBox, FaUser } from 'react-icons/fa';
 
 const POS = () => {
   const [shoes, setShoes] = useState([]);
@@ -8,18 +8,32 @@ const POS = () => {
   const [search, setSearch] = useState('');
   const [discount, setDiscount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [customers, setCustomers] = useState([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState('');
 
-  // Need to fetch some shoes initially to show in the grid
   useEffect(() => {
     fetchShoes();
   }, [search]);
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
 
   const fetchShoes = async () => {
     try {
       const { data } = await shoeAPI.getAll({ search, limit: 12 }); // fetch 12 shoes
       setShoes(data.data);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching shoes:', error);
+    }
+  };
+
+  const fetchCustomers = async () => {
+    try {
+      const { data } = await customerAPI.getAll({ limit: 100 });
+      setCustomers(data.data || []);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
     }
   };
 
@@ -94,7 +108,7 @@ const POS = () => {
     if (cart.length === 0) return;
     setLoading(true);
     try {
-      await saleAPI.create({
+      const payload = {
         items: cart,
         subtotal,
         discount: discountAmount,
@@ -103,9 +117,18 @@ const POS = () => {
         taxPercentage: 18,
         total,
         paymentMethod: 'Cash'
-        // customer could be added here if we had a customer selector, 
-        // keeping it simple per requirement
-      });
+      };
+
+      if (selectedCustomerId) {
+        const customer = customers.find(c => c._id === selectedCustomerId);
+        if (customer) {
+          payload.customer = customer._id;
+          payload.customerName = customer.name;
+          payload.customerPhone = customer.phone;
+        }
+      }
+
+      await saleAPI.create(payload);
       alert('Sale completed successfully!');
       setCart([]);
       setDiscount(0);
@@ -258,6 +281,22 @@ const POS = () => {
 
         {/* Calculation Summary */}
         <div className="p-5 border-t border-gray-200 bg-white">
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
+              <FaUser className="text-gray-400" /> Link Customer
+            </label>
+            <select
+              value={selectedCustomerId}
+              onChange={(e) => setSelectedCustomerId(e.target.value)}
+              className="w-full pl-3 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:border-blue-500 transition-all outline-none"
+            >
+              <option value="">Guest Checkout</option>
+              {customers.map(c => (
+                <option key={c._id} value={c._id}>{c.name} {c.phone ? `(${c.phone})` : ''}</option>
+              ))}
+            </select>
+          </div>
+
           <div className="space-y-3 mb-4 text-sm">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>

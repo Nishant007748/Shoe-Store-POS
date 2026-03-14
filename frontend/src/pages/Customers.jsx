@@ -79,6 +79,65 @@ const CustomerFormModal = ({ isOpen, onClose, onSubmit, editingCustomer }) => {
   );
 };
 
+const CustomerHistoryModal = ({ isOpen, onClose, customerData }) => {
+  if (!isOpen || !customerData) return null;
+
+  const { customer, purchases } = customerData;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-lg p-6 w-full max-w-3xl mt-10 mb-10">
+        <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
+          <h2 className="text-2xl font-bold text-gray-800">History: {customer.name}</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+            <FaTimesCircle className="text-3xl" />
+          </button>
+        </div>
+
+        {purchases && purchases.length > 0 ? (
+          <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+            {purchases.map(sale => (
+              <div key={sale._id} className="border border-gray-200 rounded-xl p-5 bg-gray-50/50 hover:bg-white transition-colors shadow-sm">
+                <div className="flex justify-between items-center mb-3 pb-3 border-b border-gray-200">
+                  <div>
+                    <span className="font-bold text-gray-900 block">{new Date(sale.createdAt).toLocaleDateString()}</span>
+                    <span className="text-xs text-gray-500">Invoice: {sale.invoiceNumber}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-black text-blue-600 block text-lg">₹{sale.total.toLocaleString()}</span>
+                    <span className="text-xs text-gray-500">{sale.paymentMethod}</span>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {sale.items.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-sm bg-white p-2 rounded border border-gray-100">
+                      <div className="flex items-center gap-3">
+                        <span className="bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded text-xs">{item.quantity}x</span>
+                        <div>
+                          <p className="font-medium text-gray-800">{item.shoeName}</p>
+                          <p className="text-xs text-gray-500">{item.size} • {item.color}</p>
+                        </div>
+                      </div>
+                      <span className="font-bold text-gray-700">₹{item.subtotal.toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+            <FaRegStickyNote className="text-gray-300 text-5xl mx-auto mb-3" />
+            <p className="text-lg font-medium text-gray-900">No purchase history</p>
+            <p className="text-sm text-gray-500">This customer hasn't bought anything yet.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -87,6 +146,9 @@ const Customers = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
+
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [historyData, setHistoryData] = useState(null);
 
   useEffect(() => {
     fetchCustomers();
@@ -135,7 +197,26 @@ const Customers = () => {
       fetchCustomers();
     } catch (error) {
       console.error('Error saving customer:', error);
-      alert('Error saving. Check console.');
+      const resData = error.response?.data;
+      if (resData?.errors && Array.isArray(resData.errors)) {
+        alert('Validation Error: \n' + resData.errors.map(e => '- ' + e.msg).join('\n'));
+      } else {
+        alert(resData?.message || 'Error saving. Please check the form data.');
+      }
+    }
+  };
+
+  const handleOpenHistory = async (id) => {
+    try {
+      setLoading(true);
+      const { data } = await customerAPI.getById(id);
+      setHistoryData(data.data);
+      setIsHistoryOpen(true);
+    } catch (error) {
+      console.error('Error fetching history:', error);
+      alert('Could not load purchase history.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -224,6 +305,14 @@ const Customers = () => {
                 {customer.transactionStatus !== 'Purchased' && customer.reason && (
                   <p className="mt-2 text-xs text-gray-500 italic">"{customer.reason}"</p>
                 )}
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                  <button
+                    onClick={() => handleOpenHistory(customer._id)}
+                    className="text-sm text-blue-600 font-bold hover:text-blue-800 transition-colors w-full text-center p-2 rounded bg-blue-50/50 hover:bg-blue-100"
+                  >
+                    View Purchase History
+                  </button>
+                </div>
               </div>
 
             </div>
@@ -244,6 +333,12 @@ const Customers = () => {
         onClose={handleCloseModal}
         onSubmit={handleFormSubmit}
         editingCustomer={editingCustomer}
+      />
+
+      <CustomerHistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        customerData={historyData}
       />
     </div>
   );

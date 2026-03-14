@@ -88,7 +88,8 @@ router.post('/', protect, async (req, res) => {
           totalSpent: total,
           loyaltyPoints: Math.floor(total / 100) // 1 point per 100 spent
         },
-        lastPurchaseDate: new Date()
+        lastPurchaseDate: new Date(),
+        transactionStatus: 'Purchased'
       });
     }
 
