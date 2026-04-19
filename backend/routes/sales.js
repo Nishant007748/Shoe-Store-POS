@@ -75,9 +75,11 @@ router.post('/', protect, async (req, res) => {
 
     // Update inventory
     for (const item of items) {
-      await Shoe.findByIdAndUpdate(item.shoe, {
-        $inc: { quantity: -item.quantity }
-      });
+      const shoeToUpdate = await Shoe.findById(item.shoe);
+      if (shoeToUpdate) {
+        shoeToUpdate.quantity -= item.quantity;
+        await shoeToUpdate.save(); // This will trigger the pre-save hook for isLowStock
+      }
     }
 
     // Update customer stats if customer exists

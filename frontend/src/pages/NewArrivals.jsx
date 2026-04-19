@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { shoeAPI, brandAPI } from '../utils/api';
+import { shoeAPI, brandAPI, getImageUrl } from '../utils/api';
 import { FaStar, FaClock, FaBox, FaCheckCircle, FaSpinner, FaPlus } from 'react-icons/fa';
 import { useForm } from 'react-hook-form';
 
@@ -14,12 +14,12 @@ const ArrivalFormModal = ({ isOpen, onClose, onSubmit, brands, shoeTypes }) => {
     const fd = new FormData();
     Object.keys(data).forEach(key => {
       if (data[key] === undefined || data[key] === null) return;
-      if (key === 'images') {
-        const imgVal = data.images;
-        if (imgVal && typeof imgVal === 'string' && imgVal.trim() !== '') {
-          fd.append('imageUrls', imgVal); // Map string -> secure field
+      if (key === 'imageFile') {
+        const fileList = data.imageFile;
+        if (fileList && fileList.length > 0) {
+          fd.append('images', fileList[0]);
         }
-      } else {
+      } else if (key !== 'images') {
         fd.append(key, data[key]);
       }
     });
@@ -86,8 +86,8 @@ const ArrivalFormModal = ({ isOpen, onClose, onSubmit, brands, shoeTypes }) => {
               <input type="number" {...register('sellingPrice', { required: true, min: 0 })} className="input-field mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 outline-none" />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Image URL</label>
-              <input {...register('images')} placeholder="https://..." className="input-field mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 outline-none" />
+              <label className="block text-sm font-medium text-gray-700">Shoe Image (.jpg, .png)</label>
+              <input type="file" accept="image/jpeg, image/png, image/jpg" {...register('imageFile')} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mt-1" />
             </div>
           </div>
           <div className="flex justify-end gap-2 mt-6">
@@ -177,7 +177,7 @@ const NewArrivals = () => {
 
               <div className="relative h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
                 {arrival.images && arrival.images[0] ? (
-                  <img src={arrival.images[0]} alt={arrival.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={getImageUrl(arrival.images[0])} alt={arrival.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
                   <div className="text-gray-400 text-5xl"><FaStar /></div>
                 )}

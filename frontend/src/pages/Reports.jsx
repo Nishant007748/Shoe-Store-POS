@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { reportAPI } from '../utils/api';
-import { FaChartBar, FaChartLine, FaUsers, FaBoxOpen, FaExclamationTriangle, FaCalendarAlt, FaMoneyBillWave } from 'react-icons/fa';
+import { FaChartBar, FaChartLine, FaUsers, FaBoxOpen, FaExclamationTriangle, FaCalendarAlt, FaMoneyBillWave, FaTrophy, FaShoppingCart } from 'react-icons/fa';
+import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 const Reports = () => {
   const [salesReport, setSalesReport] = useState(null);
@@ -54,48 +58,94 @@ const Reports = () => {
       </div>
 
       {/* Top Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Total Revenue */}
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden group hover:-translate-y-1 transition-transform">
-          <div className="relative z-10">
-            <p className="text-blue-100 text-sm font-semibold mb-1 uppercase tracking-wider">Total Revenue</p>
-            <h3 className="text-3xl font-black">₹{salesReport?.summary?.totalRevenue?.toLocaleString() || 0}</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Period Revenue */}
+        <div className="stat-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Period Revenue</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">₹{salesReport?.summary?.totalRevenue?.toLocaleString() || 0}</p>
+              <p className="text-sm text-blue-600 mt-1">{salesReport?.summary?.totalSales || 0} sales</p>
+            </div>
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+              <FaMoneyBillWave className="text-white text-2xl" />
+            </div>
           </div>
-          <FaMoneyBillWave className="absolute -bottom-4 -right-4 text-7xl text-blue-400 opacity-30 transform group-hover:scale-110 transition-transform duration-500" />
         </div>
 
-        {/* Total Sales */}
-        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden group hover:-translate-y-1 transition-transform">
-          <div className="relative z-10">
-            <p className="text-purple-100 text-sm font-semibold mb-1 uppercase tracking-wider">Total Sales</p>
-            <h3 className="text-3xl font-black">{salesReport?.summary?.totalSales || 0} <span className="text-lg font-medium opacity-80">orders</span></h3>
+        {/* Top Seller in Period */}
+        <div className="stat-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Top Seller</p>
+              <p className="text-lg font-bold text-gray-900 mt-2 truncate">{salesReport?.topItems?.[0]?._id || 'N/A'}</p>
+              <p className="text-sm text-purple-600 mt-1">{salesReport?.topItems?.[0]?.quantity || 0} sold</p>
+            </div>
+            <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+              <FaTrophy className="text-white text-2xl" />
+            </div>
           </div>
-          <FaChartLine className="absolute -bottom-4 -right-4 text-7xl text-purple-400 opacity-30 transform group-hover:scale-110 transition-transform duration-500" />
         </div>
 
-        {/* Total Customers (Mock metric for display if not in API, using sales count for dummy) */}
-        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden group hover:-translate-y-1 transition-transform">
-          <div className="relative z-10">
-            <p className="text-green-100 text-sm font-semibold mb-1 uppercase tracking-wider">Avg Order Value</p>
-            <h3 className="text-3xl font-black">₹{salesReport?.summary?.averageSale?.toFixed(0) || 0}</h3>
+        {/* Avg Order Value */}
+        <div className="stat-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Avg Order Value</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">₹{salesReport?.summary?.averageSale?.toFixed(0) || 0}</p>
+              <p className="text-sm text-green-600 mt-1">Per transaction</p>
+            </div>
+            <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+              <FaChartLine className="text-white text-2xl" />
+            </div>
           </div>
-          <FaUsers className="absolute -bottom-4 -right-4 text-7xl text-green-400 opacity-30 transform group-hover:scale-110 transition-transform duration-500" />
         </div>
 
-        {/* Total Inventory Units */}
-        <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden group hover:-translate-y-1 transition-transform">
-          <div className="relative z-10">
-            <p className="text-orange-100 text-sm font-semibold mb-1 uppercase tracking-wider">Total Inventory Value</p>
-            <h3 className="text-3xl font-black">₹{inventoryReport?.summary?.totalValue?.toLocaleString() || 0}</h3>
+        {/* Low Stock Alerts */}
+        <div className="stat-card bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Low Stock Items</p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">{inventoryReport?.lowStock?.length || 0}</p>
+              <p className="text-sm text-orange-600 mt-1">Need attention</p>
+            </div>
+            <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center">
+              <FaExclamationTriangle className="text-white text-2xl" />
+            </div>
           </div>
-          <FaBoxOpen className="absolute -bottom-4 -right-4 text-7xl text-orange-400 opacity-30 transform group-hover:scale-110 transition-transform duration-500" />
         </div>
       </div>
-
       {/* Main Dashboard Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Sales Trend Chart (Left) */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col h-full">
+          <h3 className="text-xl font-bold text-gray-800 mb-6">Sales Trend</h3>
+          <div className="flex-1">
+            <Line 
+              data={{
+                labels: salesReport?.salesByPeriod?.map(d => {
+                  // Format as requested based on the period format
+                  const dateParts = d._id.split('-');
+                  if (dateParts.length === 3) {
+                    return new Date(d._id).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                  }
+                  return d._id;
+                }) || [],
+                datasets: [{
+                  label: 'Revenue',
+                  data: salesReport?.salesByPeriod?.map(d => d.totalRevenue) || [],
+                  borderColor: 'rgb(59, 130, 246)',
+                  backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                  tension: 0.4,
+                }]
+              }} 
+              options={{ responsive: true, maintainAspectRatio: true }} 
+            />
+          </div>
+        </div>
 
-        {/* Top Selling Items (Left) */}
+        {/* Top Selling Items (Right) */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col h-full">
           <div className="flex items-center gap-2 mb-6">
             <FaChartBar className="text-blue-500 text-xl" />
@@ -127,11 +177,12 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* Inventory Summary by Brand & Low Stock Alerts (Right) */}
-        <div className="flex flex-col gap-6">
+        </div>
 
+        {/* Third Row: Inventory & Alerts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:col-span-2">
           {/* Inventory By Brand */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex-1">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 w-full">
             <h3 className="text-xl font-bold text-gray-800 mb-6">Inventory by Brand</h3>
             <div className="space-y-4">
               {inventoryReport?.byBrand?.map((brand, idx) => (
@@ -156,17 +207,16 @@ const Reports = () => {
           </div>
 
           {/* Low Stock Alerts */}
-          <div className="bg-red-50 rounded-xl shadow-sm border border-red-100 p-6">
+          <div className="bg-red-50 rounded-xl shadow-sm border border-red-100 p-6 w-full">
             <div className="flex items-center gap-2 mb-4">
               <FaExclamationTriangle className="text-red-500 text-xl" />
               <h3 className="text-xl font-bold text-red-800">Low Stock Alerts</h3>
             </div>
             <div className="space-y-3">
-              {/* Since low stock array might not be explicitly returned in this API structure, we display a generic alert if the low stock items array has length, otherwise fallback */}
-              {inventoryReport?.lowStockItems && inventoryReport.lowStockItems.length > 0 ? (
-                inventoryReport.lowStockItems.slice(0, 3).map((item, idx) => (
+              {inventoryReport?.lowStock && inventoryReport.lowStock.length > 0 ? (
+                inventoryReport.lowStock.slice(0, 5).map((item, idx) => (
                   <div key={idx} className="flex justify-between items-center bg-white p-3 rounded border border-red-100">
-                    <span className="font-medium text-gray-800">{item.name}</span>
+                    <span className="font-medium text-gray-800">{item.name} <span className="text-xs text-gray-400">({item.sku})</span></span>
                     <span className="bg-red-100 text-red-700 px-2 py-1 text-xs font-bold rounded">Only {item.quantity} left</span>
                   </div>
                 ))
@@ -175,9 +225,7 @@ const Reports = () => {
               )}
             </div>
           </div>
-
         </div>
-      </div>
     </div>
   );
 };

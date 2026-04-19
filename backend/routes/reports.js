@@ -13,8 +13,17 @@ router.get('/sales', protect, authorize('owner'), async (req, res) => {
   try {
     const { startDate, endDate, groupBy = 'day' } = req.query;
 
-    const start = startDate ? new Date(startDate) : new Date(new Date().setDate(new Date().getDate() - 30));
-    const end = endDate ? new Date(endDate) : new Date();
+    let start = new Date(new Date().setDate(new Date().getDate() - 30));
+    if (startDate) {
+      start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+    }
+    
+    let end = new Date();
+    if (endDate) {
+      end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+    }
 
     // Sales by period
     let groupFormat;
@@ -291,8 +300,17 @@ router.get('/performance', protect, authorize('owner'), async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
     
-    const start = startDate ? new Date(startDate) : new Date(new Date().setMonth(new Date().getMonth() - 1));
-    const end = endDate ? new Date(endDate) : new Date();
+    let start = new Date(new Date().setMonth(new Date().getMonth() - 1));
+    if (startDate) {
+      start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+    }
+    
+    let end = new Date();
+    if (endDate) {
+      end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+    }
 
     // Sales by staff member
     const staffPerformance = await Sale.aggregate([

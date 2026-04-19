@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { shoeAPI, brandAPI } from '../utils/api';
+import { shoeAPI, brandAPI, getImageUrl } from '../utils/api';
 import { FaPlus, FaEdit, FaTrash, FaSearch, FaBox } from 'react-icons/fa';
 import { useForm } from 'react-hook-form';
 
@@ -44,12 +44,12 @@ const ShoeFormModal = ({ isOpen, onClose, onSubmit, brands, shoeTypes, editingSh
       // Don't send undefined/null
       if (formattedData[key] === undefined || formattedData[key] === null) return;
 
-      if (key === 'images') {
-        const imgVal = formattedData.images[0];
-        if (imgVal && typeof imgVal === 'string' && imgVal.trim() !== '') {
-          fd.append('imageUrls', imgVal);
+      if (key === 'imageFile') {
+        const fileList = formattedData.imageFile;
+        if (fileList && fileList.length > 0) {
+          fd.append('images', fileList[0]);
         }
-      } else {
+      } else if (key !== 'images') {
         fd.append(key, formattedData[key]);
       }
     });
@@ -127,8 +127,13 @@ const ShoeFormModal = ({ isOpen, onClose, onSubmit, brands, shoeTypes, editingSh
               <input type="number" {...register('sellingPrice', { required: true, min: 0 })} className="input-field mt-1" />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700">Image URL</label>
-              <input {...register('images')} placeholder="https://..." className="input-field mt-1" />
+              <label className="block text-sm font-medium text-gray-700">Shoe Image (.jpg, .png)</label>
+              {editingShoe && editingShoe.images && editingShoe.images[0] && (
+                <div className="mb-2 w-16 h-16 rounded overflow-hidden border border-gray-200">
+                  <img src={getImageUrl(editingShoe.images[0])} alt="Current" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <input type="file" accept="image/jpeg, image/png, image/jpg" {...register('imageFile')} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mt-1" />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700">Description</label>
@@ -259,7 +264,7 @@ const Inventory = () => {
             <div key={shoe._id} className="group bg-white border border-gray-100 rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col">
               <div className="relative h-48 bg-gray-100 flex items-center justify-center overflow-hidden">
                 {shoe.images && shoe.images[0] ? (
-                  <img src={shoe.images[0]} alt={shoe.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <img src={getImageUrl(shoe.images[0])} alt={shoe.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
                   <div className="text-gray-400 text-5xl"><FaBox /></div>
                 )}

@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+backend/uploads/
+uploads/
 
 # Environment variables (IMPORTANT)
 .env

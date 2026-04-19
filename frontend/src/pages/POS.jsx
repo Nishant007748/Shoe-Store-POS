@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { shoeAPI, saleAPI, customerAPI } from '../utils/api';
+import { useNavigate } from 'react-router-dom';
+import { shoeAPI, saleAPI, customerAPI, getImageUrl } from '../utils/api';
 import { FaShoppingCart, FaTrash, FaPlus, FaMinus, FaSearch, FaBox, FaUser } from 'react-icons/fa';
 
 const POS = () => {
@@ -10,6 +11,7 @@ const POS = () => {
   const [loading, setLoading] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [selectedCustomerId, setSelectedCustomerId] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchShoes();
@@ -133,6 +135,7 @@ const POS = () => {
       setCart([]);
       setDiscount(0);
       fetchShoes(); // Refresh stock
+      navigate('/reports');
     } catch (error) {
       console.error(error);
       alert('Error processing sale');
@@ -169,12 +172,12 @@ const POS = () => {
               <div
                 key={shoe._id}
                 className={`bg-white border rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-md 
-                  \${shoe.quantity === 0 ? 'opacity-60 grayscale cursor-not-allowed border-gray-200' : 'border-transparent hover:border-blue-300'}`}
+                  ${shoe.quantity === 0 ? 'opacity-60 grayscale cursor-not-allowed border-gray-200' : 'border-transparent hover:border-blue-300'}`}
                 onClick={() => shoe.quantity > 0 && addToCart(shoe)}
               >
                 <div className="h-32 bg-gray-100 flex items-center justify-center overflow-hidden relative">
                   {shoe.images && shoe.images[0] ? (
-                    <img src={shoe.images[0]} alt={shoe.name} className="w-full h-full object-cover" />
+                    <img src={getImageUrl(shoe.images[0])} alt={shoe.name} className="w-full h-full object-cover" />
                   ) : (
                     <FaBox className="text-gray-300 text-4xl" />
                   )}
@@ -195,7 +198,7 @@ const POS = () => {
                     <span className="font-bold text-blue-600">₹{shoe.sellingPrice}</span>
                     <button
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-white
-                        \${shoe.quantity === 0 ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'}`}
+                        ${shoe.quantity === 0 ? 'bg-gray-400' : 'bg-blue-500 hover:bg-blue-600'}`}
                       disabled={shoe.quantity === 0}
                     >
                       <FaPlus className="text-xs" />
@@ -244,7 +247,7 @@ const POS = () => {
                 {/* Tiny image thumbnail */}
                 <div className="w-16 h-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0 flex items-center justify-center">
                   {item.image ? (
-                    <img src={item.image} alt={item.shoeName} className="w-full h-full object-cover" />
+                    <img src={getImageUrl(item.image)} alt={item.shoeName} className="w-full h-full object-cover" />
                   ) : (
                     <FaBox className="text-gray-300" />
                   )}
@@ -339,7 +342,7 @@ const POS = () => {
             onClick={handleCheckout}
             disabled={cart.length === 0 || loading}
             className={`w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all
-              \${cart.length === 0 || loading 
+              ${cart.length === 0 || loading 
                 ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
                 : 'bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl hover:-translate-y-0.5'}`}
           >

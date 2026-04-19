@@ -7,6 +7,7 @@ import POS from './pages/POS';
 import Customers from './pages/Customers';
 import Reports from './pages/Reports';
 import NewArrivals from './pages/NewArrivals';
+import Subscription from './pages/Subscription';
 import Layout from './components/common/Layout';
 
 const PrivateRoute = ({ children }) => {
@@ -38,6 +39,7 @@ const AppRoutes = () => {
         <Route path="customers" element={<Customers />} />
         <Route path="new-arrivals" element={<NewArrivals />} />
         <Route path="reports" element={<Reports />} />
+        <Route path="subscription" element={<Subscription />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" />} />

@@ -107,4 +107,14 @@ export const reportAPI = {
   getPerformanceReport: (params) => api.get('/reports/performance', { params }),
 };
 
+export const getImageUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  
+  const baseUrl = API_URL;
+  const serverUrl = baseUrl.replace(/\/api$/, '');
+  
+  return `${serverUrl}${path.startsWith('/') ? path : '/' + path}`;
+};
+
 export default api;
